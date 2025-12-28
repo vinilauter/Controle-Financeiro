@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import plotly.express as px
-from src.load_data import load_data
+from src.etl import load_data
 from src.controller import income_outcome_sum, category_group
 
 # dataframe load
@@ -25,8 +25,29 @@ st.set_page_config (
 
 st.title("Dashboard Financeiro")
 
-# dataframe display
-st.dataframe(dataframe, width="stretch")
+# balance display
+
+col_entradas, col_saidas, col_saldo = st.columns(3)
+
+col_entradas.metric(label="Entradas", value=f"R$ {receitas_totais:.2f}")
+
+col_saidas.metric(label="Saídas", value=f"R$ {despesas_totais:.2f}")
+
+col_saldo.metric(label="Saldo", value=f"R$ {saldo_total:.2f}")
+
+# title set
+with st.expander("Ver Tabela Detalhada"):
+
+    # exibition cleaning
+
+    dataframe_exibicao = dataframe[["Data", "Valor", "Operação", "Meio", "Categoria"]]
+
+    dataframe_exibicao["Data"] = dataframe_exibicao["Data"].dt.strftime("%d/%m/%Y")
+
+    # dataframe display
+    st.dataframe(dataframe_exibicao, width="stretch", hide_index=True, column_config={
+        "Valor": st.column_config.NumberColumn(format="R$ %.2f")
+    })
 
 # outcomes pie chart by categories
 
@@ -34,9 +55,14 @@ grafico_despesas = px.pie(
     depesas_categorizadas,
     names="Categoria",
     values="Valor",
+    title="Despesas por Categoria"
 )
 
-st.plotly_chart(grafico_despesas, use_container_width=True)
+grafico_despesas.update_traces(
+    textposition='inside',
+    textinfo='percent+label', 
+    hovertemplate='%{label}: <br>R$ %{value:.2f}' 
+)
 
 # incomes pie chart by categories
 
@@ -44,16 +70,19 @@ grafico_receitas = px.pie(
     receitas_categorizadas,
     names="Categoria",
     values="Valor",
+    title="Receitas por Categoria"
 )
 
-st.plotly_chart(grafico_receitas, use_container_width=True)
+grafico_receitas.update_traces(
+    textposition='inside',
+    textinfo='percent+label', 
+    hovertemplate='%{label}: <br>R$ %{value:.2f}' 
+)
 
-# balance columns set
+# pie chart display
 
-col1, col2, col3 = st.columns(3)
+col_pie_despesas, col_pie_receitas = st.columns(2)
 
-col1.metric(label="Entradas", value=f"R$ {receitas_totais:.2f}")
+col_pie_despesas.plotly_chart(grafico_despesas, use_container_width=True)
 
-col2.metric(label="Saídas", value=f"R$ {despesas_totais:.2f}")
-
-col3.metric(label="Saldo", value=f"R$ {saldo_total:.2f}")
+col_pie_receitas.plotly_chart(grafico_receitas, use_container_width=True)

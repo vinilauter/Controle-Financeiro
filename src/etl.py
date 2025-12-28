@@ -24,18 +24,18 @@ def load_data():
     print(dataframe.columns)
 
     # rename columns for better coding
-    dataframe = dataframe.rename(columns={"Carimbo de data/hora": "Data Atual", "Natureza da Operação": "Operacao", "Forma de Pagamento": "Meio", "Data": "Data Manual"})
+    dataframe = dataframe.rename(columns={"Carimbo de data/hora": "Data Atual", "Natureza da Operação": "Operação", "Forma de Pagamento": "Meio", "Data": "Data Manual"})
 
     # money types cast
-    dataframe["Valor"] = dataframe["Valor"].astype(str).str.replace(',', '.')
     dataframe["Valor"] = pd.to_numeric(dataframe["Valor"], downcast='float', errors='coerce')
+    dataframe["Valor"] = dataframe["Valor"].round(2)
 
     # date types cast
     dataframe["Data Atual"] = pd.to_datetime(dataframe["Data Atual"], dayfirst=True, errors="coerce")
     dataframe["Data Manual"] = pd.to_datetime(dataframe["Data Manual"], dayfirst=True, errors="coerce")
 
     # final date logic
-    dataframe["Data Final"] = dataframe["Data Manual"].fillna(dataframe["Data Atual"])
+    dataframe["Data"] = dataframe["Data Manual"].fillna(dataframe["Data Atual"])
 
     # incomes and outcomes logic
 

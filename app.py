@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from src.etl import load_data
-from src.controller import income_outcome_sum, category_group
+from src.controller import income_outcome_sum, category_group, monthly_expenses
 
 # dataframe load
 dataframe = load_data()
@@ -35,7 +35,8 @@ col_saidas.metric(label="Saídas", value=f"R$ {despesas_totais:.2f}")
 
 col_saldo.metric(label="Saldo", value=f"R$ {saldo_total:.2f}")
 
-# title set
+# income and outcome sheet display
+
 with st.expander("Ver Tabela Detalhada"):
 
     # exibition cleaning
@@ -86,3 +87,25 @@ col_pie_despesas, col_pie_receitas = st.columns(2)
 col_pie_despesas.plotly_chart(grafico_despesas, use_container_width=True)
 
 col_pie_receitas.plotly_chart(grafico_receitas, use_container_width=True)
+
+# monthly expenses evolution
+
+despesa_mensal = monthly_expenses(dataframe)
+
+# bar chart display
+
+grafico_mensal = px.bar(
+    despesa_mensal,
+    x="Mês",
+    y="Valor",
+    title="Evolução Mensal de Despesas",
+    labels={"Data": "Mês", "Valor": "Valor Gasto"}
+)
+
+grafico_mensal.update_layout(xaxis_type='category')
+
+grafico_mensal.update_traces(
+    hovertemplate='Mês: %{x} <br>Total: R$ %{y:.2f}'
+)
+
+st.plotly_chart(grafico_mensal, use_container_width=True)

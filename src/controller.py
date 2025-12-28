@@ -36,3 +36,15 @@ def category_group(dataframe):
     receitas_categorizadas = dataframe[dataframe["Operação"] == "Receita"].groupby("Categoria").sum(["Valor"]).reset_index()
 
     return depesas_categorizadas, receitas_categorizadas
+
+# monthly expenses evolution
+
+def monthly_expenses(dataframe):
+    
+    dataframe_mensal = dataframe.copy()
+
+    dataframe_mensal["Mês"] = dataframe_mensal["Data"].dt.strftime("%Y-%m")
+
+    despesa_mensal = dataframe_mensal[dataframe_mensal["Operação"] == "Despesa"].groupby("Mês").sum(["Valor"]).reset_index()
+
+    return despesa_mensal

@@ -73,7 +73,7 @@ with st.expander("Ver Tabela Detalhada"):
 
     # exibition cleaning
 
-    dataframe_exibicao = df_year_filtered[["Data", "Valor", "Operação", "Meio", "Categoria"]]
+    dataframe_exibicao = df_filtered[["Data", "Valor", "Operação", "Meio", "Categoria"]]
 
     dataframe_exibicao["Data"] = dataframe_exibicao["Data"].dt.strftime("%d/%m/%Y")
 

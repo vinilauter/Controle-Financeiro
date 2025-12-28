@@ -3,15 +3,47 @@ import streamlit as st
 import plotly.express as px
 from src.etl import load_data
 from src.controller import income_outcome_sum, category_group, monthly_expenses
+from src.utils import MESES
 
 # dataframe load
+
 dataframe = load_data()
+
+# sidebar filter
+
+st.sidebar.title("Filtros")
+
+list_years = sorted(dataframe["Data"].dt.year.unique(), reverse=True) # extracts unique years and order from first to last 
+selected_year = st.sidebar.selectbox("Selecione o Ano:", list_years)
+
+df_year_filtered = dataframe[dataframe["Data"].dt.year == selected_year] # filter by year to show the months
+
+list_months = sorted(df_year_filtered["Data"].dt.month.unique(), reverse=True) # extracts the months in the selected year
+
+list_months.insert(0, 0) 
+
+def format_month_name(option):
+    if option == 0:
+        return "Todos"
+    return MESES[option]
+
+selected_month = st.sidebar.selectbox(
+    "Selecione o Mês:", 
+    list_months, 
+    format_func=format_month_name 
+)
+
+if selected_month != 0:
+    df_filtered = df_year_filtered[df_year_filtered["Data"].dt.month == selected_month]
+else:
+    df_filtered = df_year_filtered
+
 
 # globals
 
-receitas_totais, despesas_totais, saldo_total = income_outcome_sum(dataframe)
+receitas_totais, despesas_totais, saldo_total = income_outcome_sum(df_filtered)
 
-depesas_categorizadas, receitas_categorizadas = category_group(dataframe)
+depesas_categorizadas, receitas_categorizadas = category_group(df_filtered)
 
 # page config
 st.set_page_config (
@@ -41,7 +73,7 @@ with st.expander("Ver Tabela Detalhada"):
 
     # exibition cleaning
 
-    dataframe_exibicao = dataframe[["Data", "Valor", "Operação", "Meio", "Categoria"]]
+    dataframe_exibicao = df_year_filtered[["Data", "Valor", "Operação", "Meio", "Categoria"]]
 
     dataframe_exibicao["Data"] = dataframe_exibicao["Data"].dt.strftime("%d/%m/%Y")
 

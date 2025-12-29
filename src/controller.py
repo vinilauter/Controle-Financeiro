@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from src.etl import load_data
+from src.utils import METAS
 
 # dataframe load
 dataframe = load_data()
@@ -48,3 +49,43 @@ def monthly_expenses(dataframe):
     despesa_mensal = dataframe_mensal[dataframe_mensal["Operação"] == "Despesa"].groupby("Mês").sum(["Valor"]).reset_index()
 
     return despesa_mensal
+
+# budget calculus functions
+
+def total_budget_calculus(dataframe):
+    
+    df_total_mensal = dataframe[dataframe["Operação"] == "Despesa"]
+
+    total_mensal = df_total_mensal["Valor"].sum()
+
+    porcentagem_mensal = total_mensal / METAS["Total"]
+
+    return float(porcentagem_mensal)
+
+def category_budget_calculus(dataframe):
+
+    results = []
+
+    df_despesas = dataframe[dataframe["Operação"] == "Despesa"] 
+
+    gastos_por_cat = df_despesas.groupby("Categoria")["Valor"].sum()
+
+    for categoria, meta_valor in METAS["Categorias"].items():
+        
+        gasto_real = gastos_por_cat.get(categoria, 0.0)
+        
+        if meta_valor > 0:
+            percentual = float(gasto_real / meta_valor)
+        else:
+            percentual = 0.0
+            
+        results.append({
+            "categoria": categoria,
+            "gasto": gasto_real,
+            "meta": meta_valor,
+            "percentual": percentual
+        })
+        
+    return results
+
+

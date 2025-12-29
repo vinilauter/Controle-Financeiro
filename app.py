@@ -2,8 +2,8 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 from src.etl import load_data
-from src.controller import income_outcome_sum, category_group, monthly_expenses
-from src.utils import MESES
+from src.controller import income_outcome_sum, category_group, monthly_expenses, total_budget_calculus, category_budget_calculus
+from src.utils import MESES, METAS
 
 # dataframe load
 
@@ -55,7 +55,7 @@ st.set_page_config (
 
 # title set
 
-st.title("Dashboard Financeiro")
+st.title("Dashboard Financeiro", text_alignment="center")
 
 # balance display
 
@@ -126,6 +126,8 @@ despesa_mensal = monthly_expenses(dataframe)
 
 # bar chart display
 
+st.divider()
+
 grafico_mensal = px.bar(
     despesa_mensal,
     x="Mês",
@@ -141,3 +143,25 @@ grafico_mensal.update_traces(
 )
 
 st.plotly_chart(grafico_mensal, use_container_width=True)
+
+# budget display
+
+st.divider()
+st.subheader("Orçamento Mensal")
+
+percentual_total = total_budget_calculus(df_filtered) 
+val_total = min(1.0, percentual_total) # locks at 100%
+
+st.caption(f"Meta Total: Gastou {(percentual_total*100):.1f}% do total disponível")
+st.progress(val_total, text=f"Restam R$ {METAS['Total'] - despesas_totais:.2f}")
+
+# budget by category
+
+st.subheader("Orçamento por Categoria")
+status_categorias = category_budget_calculus(df_filtered)
+
+for i, item in enumerate(status_categorias):
+    val_bar = min(1.0, item["percentual"])
+    st.caption(f"**{item["categoria"]}**: Gastou {item["percentual"]*100:.1f}% do total disponível")
+    st.progress(val_bar, text=f"Restam R$ {item["meta"] - item["gasto"]:.2f}")
+    st.divider()
